@@ -1,0 +1,585 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro Token Tools</title>
+  <style>
+    /* CSS 变量 - 深色主题（默认） */
+    :root {
+      --bg-gradient-start: #1a1a2e;
+      --bg-gradient-end: #16213e;
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-primary: #a78bfa;
+      --accent-hover: #6d28d9;
+      --accent-disabled: #4c1d95;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --input-bg: rgba(0, 0, 0, 0.3);
+      --input-border: rgba(255, 255, 255, 0.1);
+      --result-bg: rgba(0, 0, 0, 0.2);
+      --result-border: rgba(255, 255, 255, 0.08);
+      --usage-item-bg: rgba(255, 255, 255, 0.03);
+      --token-output-bg: rgba(0, 0, 0, 0.4);
+      --copy-btn-bg: rgba(124, 58, 237, 0.3);
+      --copy-btn-border: rgba(124, 58, 237, 0.5);
+      --copy-btn-text: #c4b5fd;
+      --download-btn-bg: rgba(74, 222, 128, 0.3);
+      --download-btn-border: rgba(74, 222, 128, 0.5);
+      --download-btn-text: #86efac;
+      --notice-bg: rgba(74, 222, 128, 0.1);
+      --notice-border: rgba(74, 222, 128, 0.2);
+      --notice-text: #86efac;
+      --error-text: #f87171;
+      --error-bg: rgba(248, 113, 113, 0.1);
+      --hint-bg: rgba(74, 222, 128, 0.1);
+      --hint-border: rgba(74, 222, 128, 0.3);
+      --hint-text: #d4d4d8;
+      --code-bg: rgba(0, 0, 0, 0.3);
+      --code-text: #4ade80;
+      --placeholder-text: #52525b;
+      --loading-border: rgba(255, 255, 255, 0.3);
+      --loading-top: white;
+    }
+    
+    /* 浅色主题 */
+    [data-theme="light"] {
+      --bg-gradient-start: #f8fafc;
+      --bg-gradient-end: #e2e8f0;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-primary: #7c3aed;
+      --accent-hover: #5b21b6;
+      --accent-disabled: #c4b5fd;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --card-border: rgba(0, 0, 0, 0.1);
+      --input-bg: rgba(255, 255, 255, 0.9);
+      --input-border: rgba(0, 0, 0, 0.15);
+      --result-bg: rgba(255, 255, 255, 0.6);
+      --result-border: rgba(0, 0, 0, 0.08);
+      --usage-item-bg: rgba(0, 0, 0, 0.03);
+      --token-output-bg: rgba(0, 0, 0, 0.05);
+      --copy-btn-bg: rgba(124, 58, 237, 0.15);
+      --copy-btn-border: rgba(124, 58, 237, 0.4);
+      --copy-btn-text: #7c3aed;
+      --download-btn-bg: rgba(22, 163, 74, 0.15);
+      --download-btn-border: rgba(22, 163, 74, 0.4);
+      --download-btn-text: #16a34a;
+      --notice-bg: rgba(22, 163, 74, 0.1);
+      --notice-border: rgba(22, 163, 74, 0.3);
+      --notice-text: #16a34a;
+      --error-text: #dc2626;
+      --error-bg: rgba(220, 38, 38, 0.1);
+      --hint-bg: rgba(22, 163, 74, 0.08);
+      --hint-border: rgba(22, 163, 74, 0.25);
+      --hint-text: #334155;
+      --code-bg: rgba(0, 0, 0, 0.08);
+      --code-text: #16a34a;
+      --placeholder-text: #94a3b8;
+      --loading-border: rgba(0, 0, 0, 0.2);
+      --loading-top: #7c3aed;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 8px; }
+    h1 { text-align: center; color: var(--accent-primary); font-size: 1.8rem; }
+    .theme-select {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      outline: none;
+    }
+    .theme-select:hover { background: var(--input-bg); }
+    .theme-select:focus { border-color: var(--accent-primary); }
+    .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 12px; font-size: 0.9rem; }
+    .notice {
+      text-align: center;
+      color: var(--notice-text);
+      background: var(--notice-bg);
+      border: 1px solid var(--notice-border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .card-title { font-size: 1rem; color: var(--accent-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    label { display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.85rem; }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      padding: 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    textarea:focus { outline: none; border-color: var(--accent-primary); }
+    textarea::placeholder { color: var(--placeholder-text); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #7c3aed; color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { background: var(--accent-disabled); cursor: not-allowed; opacity: 0.6; }
+    .btn-group { display: flex; gap: 10px; margin-top: 16px; }
+    .result-section { display: none; }
+    .result-section.show { display: block; }
+    .result-item {
+      background: var(--result-bg);
+      border: 1px solid var(--result-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .result-title { font-weight: 500; color: var(--accent-primary); }
+    .usage-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+    .usage-item { text-align: center; padding: 10px; background: var(--usage-item-bg); border-radius: 6px; }
+    .usage-value { font-size: 1.4rem; font-weight: 600; color: var(--accent-primary); }
+    .usage-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    .token-section { display: flex; gap: 12px; align-items: flex-start; }
+    .token-output {
+      flex: 1;
+      background: var(--token-output-bg);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      transition: background 0.3s;
+    }
+    .copy-btn {
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      background: var(--copy-btn-bg);
+      border: 1px solid var(--copy-btn-border);
+      color: var(--copy-btn-text);
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { opacity: 0.8; }
+    .download-btn {
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      background: var(--download-btn-bg);
+      border: 1px solid var(--download-btn-border);
+      color: var(--download-btn-text);
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .download-btn:hover { opacity: 0.8; }
+    .btn-row { display: flex; gap: 8px; flex-direction: column; }
+    .error { color: var(--error-text); background: var(--error-bg); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; }
+    .path-hint {
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--hint-bg);
+      border: 1px solid var(--hint-border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--hint-text);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .path-hint code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: var(--code-text);
+      font-size: 0.75rem;
+    }
+    .hint-title { color: var(--notice-text); font-weight: 500; margin-bottom: 10px; }
+    .hint-section { margin-bottom: 12px; }
+    .hint-section:last-child { margin-bottom: 0; }
+    .hint-section strong { color: var(--accent-primary); display: block; margin-bottom: 6px; }
+    .hint-section ol { margin: 0; padding-left: 20px; }
+    .hint-section li { margin-bottom: 4px; line-height: 1.5; }
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--loading-border);
+      border-top-color: var(--loading-top);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .email-tag { 
+      font-size: 0.75rem; 
+      color: var(--notice-text); 
+      background: var(--notice-bg);
+      border: 1px solid var(--notice-border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔧 Kiro Token Tools</h1>
+      <select class="theme-select" id="themeSelect" onchange="setTheme(this.value)" title="选择主题">
+        <option value="auto">🔄 跟随系统</option>
+        <option value="light">☀️ 浅色</option>
+        <option value="dark">🌙 深色</option>
+      </select>
+    </div>
+    <p class="subtitle">用量查询 & Token 转换</p>
+    <div class="notice">
+      🔒 本工具基于 Cloudflare Workers 运行，直接调用官方接口，服务端不存储任何数据，请放心使用。
+    </div>
+    
+    <div class="card">
+      <div class="card-title">📥 输入 Token 数据</div>
+      <label>支持以下格式，直接粘贴即可自动识别：</label>
+      <textarea id="input" placeholder='【Social 账号 (Google/GitHub)】
+{ "refreshToken": "xxx", "provider": "Google" }
+
+【BuilderId/Enterprise 账号】需要 clientId 和 clientSecret:
+{ "refreshToken": "xxx", "clientId": "xxx", "clientSecret": "xxx", "provider": "BuilderId", "region": "us-east-1" }
+
+【其他格式】
+账号：{"email":"xxx"}登录token：{"refreshToken":"xxx"}
+{"email":"xxx"}|{"refreshToken":"xxx"}'></textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="submitBtn" onclick="processTokens()">
+          <span id="btnText">🚀 查询用量 & 转换</span>
+          <span id="btnLoading" class="loading" style="display:none"></span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="result-section" id="resultSection">
+      <div class="card">
+        <div class="card-title">📊 查询结果</div>
+        <div id="results"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 主题管理：auto=跟随系统, light=浅色, dark=深色
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    // 应用主题
+    function applyTheme(theme) {
+      const actualTheme = theme === 'auto' ? getSystemTheme() : theme;
+      document.documentElement.setAttribute('data-theme', actualTheme);
+    }
+    
+    // 安全的 localStorage 操作
+    function safeGetItem(key, defaultValue = null) {
+      try {
+        return localStorage.getItem(key) || defaultValue;
+      } catch (e) {
+        console.warn('localStorage access denied:', e);
+        return defaultValue;
+      }
+    }
+    
+    function safeSetItem(key, value) {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        console.warn('localStorage write denied:', e);
+        return false;
+      }
+    }
+    
+    // 设置主题（用户选择）
+    function setTheme(theme) {
+      safeSetItem('theme', theme);
+      applyTheme(theme);
+    }
+    
+    // 初始化主题
+    (function initTheme() {
+      const saved = safeGetItem('theme', 'auto');
+      applyTheme(saved);
+      // 更新下拉框选中状态
+      const select = document.getElementById('themeSelect');
+      if (select) select.value = saved;
+      // 监听系统主题变化（仅 auto 模式生效）
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (safeGetItem('theme', 'auto') === 'auto') {
+          applyTheme('auto');
+        }
+      });
+    })();
+    
+    async function processTokens() {
+      const input = document.getElementById('input').value.trim();
+      if (!input) return;
+      
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnLoading = document.getElementById('btnLoading');
+      const resultSection = document.getElementById('resultSection');
+      const results = document.getElementById('results');
+      
+      btn.disabled = true;
+      btnText.textContent = '处理中...';
+      btnLoading.style.display = 'inline-block';
+      
+      try {
+        const response = await fetch('/api/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || '请求失败');
+        }
+        
+        resultSection.classList.add('show');
+        
+        if (data.error) {
+          results.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+          return;
+        }
+        
+        const usage = data.usage;
+        const kiroToken = data.kiroToken;
+        const tokenJson = JSON.stringify(kiroToken, null, 2);
+        const isBuilderIdType = data.isBuilderIdType;
+        const clientIdHashFile = data.clientIdHashFile;
+        
+        // 根据 Token 类型生成不同的保存步骤
+        let saveStepsHtml = '';
+        if (isBuilderIdType && clientIdHashFile) {
+          // BuilderId 类型：需要保存两个文件
+          const clientIdHashJson = JSON.stringify(clientIdHashFile.content, null, 2);
+          saveStepsHtml = `
+            <div class="path-hint">
+              <div class="hint-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>📁 BuilderId 账号（需要保存 2 个文件）</span>
+                <button class="download-btn" onclick="downloadAllFiles(this)" style="font-size: 0.8rem; padding: 6px 16px;">⬇️ 一键下载全部</button>
+              </div>
+              
+              <div class="hint-section" style="margin-top: 12px;">
+                <strong>📄 文件 1：kiro-auth-token.json</strong>
+                <div class="token-section" style="margin: 8px 0;">
+                  <div class="token-output" id="token-output">${tokenJson}</div>
+                  <div class="btn-row">
+                    <button class="copy-btn" onclick="copyToken(this, 'token-output')">📋 复制</button>
+                    <button class="download-btn" onclick="downloadTokenFile(this)">⬇️ 下载</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hint-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <strong>📄 文件 2：${clientIdHashFile.filename}</strong>
+                <p style="color: #a1a1aa; font-size: 0.75rem; margin: 4px 0 8px 0;">包含 clientId 和 clientSecret，用于 Token 刷新</p>
+                <div class="token-section" style="margin: 8px 0;">
+                  <div class="token-output" id="clientid-output">${clientIdHashJson}</div>
+                  <div class="btn-row">
+                    <button class="copy-btn" onclick="copyToken(this, 'clientid-output')">📋 复制</button>
+                    <button class="download-btn" onclick="downloadClientIdFile(this)">⬇️ 下载</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hint-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(251,191,36,0.1); padding: 12px; border-radius: 6px;">
+                <strong style="color: #fbbf24;">📍 文件保存路径：</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px; list-style: disc;">
+                  <li><b>macOS / Linux：</b><code>~/.aws/sso/cache/</code><br><span style="color: #a1a1aa; font-size: 0.7rem;">如目录不存在：<code>mkdir -p ~/.aws/sso/cache</code></span></li>
+                  <li><b>Windows：</b><code>C:\\Users\\用户名\\.aws\\sso\\cache\\</code><br><span style="color: #a1a1aa; font-size: 0.7rem;">如目录不存在：<code>mkdir %USERPROFILE%\\.aws\\sso\\cache</code></span></li>
+                </ul>
+                <p style="margin-top: 8px; color: #a1a1aa; font-size: 0.75rem;">
+                  下载后将两个文件移动到上述目录即可。
+                </p>
+                <p style="margin-top: 6px; color: #fbbf24; font-size: 0.75rem;">
+                  ⚠️ 注意：请确保 Kiro 安装在默认目录，否则需要将文件放到 Kiro 实际安装目录对应的 .aws/sso/cache 下。
+                </p>
+              </div>
+            </div>
+          `;
+        } else {
+          // Social 类型：只需保存一个文件
+          saveStepsHtml = `
+            <div class="path-hint">
+              <div class="hint-title">📁 Social 账号（保存 1 个文件）</div>
+              
+              <div class="hint-section" style="margin-top: 8px;">
+                <strong>📄 文件：kiro-auth-token.json</strong>
+                <div class="token-section" style="margin: 8px 0;">
+                  <div class="token-output" id="token-output">${tokenJson}</div>
+                  <div class="btn-row">
+                    <button class="copy-btn" onclick="copyToken(this, 'token-output')">📋 复制</button>
+                    <button class="download-btn" onclick="downloadTokenFile(this)">⬇️ 下载</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hint-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(74,222,128,0.1); padding: 12px; border-radius: 6px;">
+                <strong style="color: #4ade80;">📍 文件保存路径：</strong>
+                <ul style="margin: 8px 0 0 0; padding-left: 20px; list-style: disc;">
+                  <li><b>macOS / Linux：</b><code>~/.aws/sso/cache/kiro-auth-token.json</code><br><span style="color: #a1a1aa; font-size: 0.7rem;">如目录不存在：<code>mkdir -p ~/.aws/sso/cache</code></span></li>
+                  <li><b>Windows：</b><code>C:\\Users\\用户名\\.aws\\sso\\cache\\kiro-auth-token.json</code><br><span style="color: #a1a1aa; font-size: 0.7rem;">如目录不存在：<code>mkdir %USERPROFILE%\\.aws\\sso\\cache</code></span></li>
+                </ul>
+                <p style="margin-top: 8px; color: #a1a1aa; font-size: 0.75rem;">
+                  下载后将文件移动到上述路径即可。
+                </p>
+                <p style="margin-top: 6px; color: #4ade80; font-size: 0.75rem;">
+                  ⚠️ 注意：请确保 Kiro 安装在默认目录，否则需要将文件放到 Kiro 实际安装目录对应的 .aws/sso/cache 下。
+                </p>
+              </div>
+            </div>
+          `;
+        }
+        
+        results.innerHTML = `
+          <div class="result-item">
+            <div class="result-header">
+              <span class="result-title">查询结果 <span style="font-size: 0.75rem; color: ${isBuilderIdType ? '#fbbf24' : '#4ade80'}; background: ${isBuilderIdType ? 'rgba(251,191,36,0.15)' : 'rgba(74,222,128,0.15)'}; padding: 2px 8px; border-radius: 4px; margin-left: 8px;">${isBuilderIdType ? 'BuilderId' : 'Social'}</span>${usage?.email ? '<span class="email-tag">' + usage.email + '</span>' : ''}</span>
+            </div>
+            ${usage ? `
+              <div class="usage-info">
+                <div class="usage-item">
+                  <div class="usage-value">${usage.limit}</div>
+                  <div class="usage-label">总限额</div>
+                </div>
+                <div class="usage-item">
+                  <div class="usage-value">${usage.used}</div>
+                  <div class="usage-label">已使用</div>
+                </div>
+                <div class="usage-item">
+                  <div class="usage-value" style="color: ${usage.remaining > 0 ? '#4ade80' : '#f87171'}">${usage.remaining}</div>
+                  <div class="usage-label">剩余</div>
+                </div>
+              </div>
+            ` : '<div class="error">⚠️ 用量查询失败（可能 accessToken 已过期）</div>'}
+            ${saveStepsHtml}
+          </div>
+        `;
+        
+        window.tokenData = data;
+        
+      } catch (error) {
+        resultSection.classList.add('show');
+        results.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '🚀 查询用量 & 转换';
+        btnLoading.style.display = 'none';
+      }
+    }
+    
+    function copyToken(btn, elementId) {
+      const tokenEl = document.getElementById(elementId || 'token-output');
+      navigator.clipboard.writeText(tokenEl.textContent).then(() => {
+        btn.textContent = '✅ 已复制';
+        setTimeout(() => btn.textContent = '📋 复制', 1500);
+      });
+    }
+    
+    // 下载单个文件
+    function downloadFile(content, filename) {
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    // 下载 kiro-auth-token.json
+    function downloadTokenFile(btn) {
+      if (!window.tokenData || !window.tokenData.kiroToken) return;
+      const content = JSON.stringify(window.tokenData.kiroToken, null, 2);
+      downloadFile(content, 'kiro-auth-token.json');
+      btn.textContent = '✅ 已下载';
+      setTimeout(() => btn.textContent = '⬇️ 下载', 1500);
+    }
+    
+    // 下载 clientIdHash 文件
+    function downloadClientIdFile(btn) {
+      if (!window.tokenData || !window.tokenData.clientIdHashFile) return;
+      const file = window.tokenData.clientIdHashFile;
+      const content = JSON.stringify(file.content, null, 2);
+      downloadFile(content, file.filename);
+      btn.textContent = '✅ 已下载';
+      setTimeout(() => btn.textContent = '⬇️ 下载', 1500);
+    }
+    
+    // 一键下载所有文件（BuilderId 类型）
+    function downloadAllFiles(btn) {
+      if (!window.tokenData) return;
+      // 下载 kiro-auth-token.json
+      const tokenContent = JSON.stringify(window.tokenData.kiroToken, null, 2);
+      downloadFile(tokenContent, 'kiro-auth-token.json');
+      // 如果有 clientIdHash 文件也下载
+      if (window.tokenData.clientIdHashFile) {
+        setTimeout(() => {
+          const file = window.tokenData.clientIdHashFile;
+          const content = JSON.stringify(file.content, null, 2);
+          downloadFile(content, file.filename);
+        }, 300);
+      }
+      btn.textContent = '✅ 已下载';
+      setTimeout(() => btn.textContent = '⬇️ 一键下载全部', 1500);
+    }
+  </script>
+</body>
+</html>

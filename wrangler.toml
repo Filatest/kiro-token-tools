@@ -1,0 +1,5 @@
+name = "kiro-token-tools"
+compatibility_date = "2025-12-01"
+
+# Cloudflare Pages 配置
+pages_build_output_dir = "./public"
