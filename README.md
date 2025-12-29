@@ -14,17 +14,18 @@
 
 ## 架构图
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   用户请求      │───▶│  Cloudflare Edge │───▶│  Workers 函数   │
-│   (Browser)     │    │     Network      │    │   (Runtime)     │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                        │
-                                ▼                        ▼
-                       ┌──────────────────┐    ┌─────────────────┐
-                       │   静态资源缓存   │    │   API 处理逻辑  │
-                       │  (Public Files)  │    │ (Functions/API) │
-                       └──────────────────┘    └─────────────────┘
+```mermaid
+graph TD
+    A[用户请求<br/>Browser] --> B[Cloudflare Edge<br/>Network]
+    B --> C[Workers 函数<br/>Runtime]
+    B --> D[静态资源缓存<br/>Public Files]
+    C --> E[API 处理逻辑<br/>Functions/API]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
 ```
 
 ## 项目结构
