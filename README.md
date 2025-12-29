@@ -89,7 +89,7 @@ wrangler deploy
 
 ## 许可证
 
-MIT License
+[MIT License](LICENSE)
 
 ## 联系方式
 
