@@ -9,8 +9,23 @@
 ## 技术栈
 
 - **运行时**: Cloudflare Workers
-- **部署工具**: Wrangler CLI
+- **部署工具**: Wrangler CLI / Cloudflare Dashboard
 - **语言**: JavaScript
+
+## 架构图
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   用户请求      │───▶│  Cloudflare Edge │───▶│  Workers 函数   │
+│   (Browser)     │    │     Network      │    │   (Runtime)     │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌──────────────────┐    ┌─────────────────┐
+                       │   静态资源缓存   │    │   API 处理逻辑  │
+                       │  (Public Files)  │    │ (Functions/API) │
+                       └──────────────────┘    └─────────────────┘
+```
 
 ## 项目结构
 
@@ -52,10 +67,46 @@ wrangler dev --port 8080
 
 ### 部署
 
+#### 方式一：命令行部署（推荐）
+
 ```bash
 # 部署到 Cloudflare Workers
 wrangler deploy
 ```
+
+#### 方式二：Cloudflare 网页端部署
+
+1. **登录 Cloudflare Dashboard**
+   - 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - 登录你的账户
+
+2. **创建 Workers 应用**
+   - 进入 `Workers & Pages` 页面
+   - 点击 `Create application`
+   - 选择 `Pages` 标签
+   - 点击 `Connect to Git`
+
+3. **连接 GitHub 仓库**
+   - 选择 `GitHub` 作为 Git 提供商
+   - 授权 Cloudflare 访问你的 GitHub 账户
+   - 选择 `kiroTools` 仓库
+   - 点击 `Begin setup`
+
+4. **配置部署设置**
+   - **Project name**: `kirotools`（或自定义名称）
+   - **Production branch**: `main`
+   - **Framework preset**: `None`
+   - **Build command**: 留空
+   - **Build output directory**: `public`
+
+5. **部署项目**
+   - 点击 `Save and Deploy`
+   - 等待部署完成
+   - 获得部署 URL：`https://kirotools.pages.dev`
+
+6. **后续更新**
+   - 每次推送到 `main` 分支时自动重新部署
+   - 可在 Cloudflare Dashboard 中查看部署历史和日志
 
 ## 配置
 
