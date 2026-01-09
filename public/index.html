@@ -411,7 +411,10 @@
             <div class="path-hint">
               <div class="hint-title" style="display: flex; justify-content: space-between; align-items: center;">
                 <span>📁 BuilderId 账号（需要保存 2 个文件）</span>
-                <button class="download-btn" onclick="downloadAllFiles(this)" style="font-size: 0.8rem; padding: 6px 16px;">⬇️ 一键下载全部</button>
+                <div style="display: flex; gap: 8px;">
+                  <button class="download-btn" onclick="downloadAllFiles(this)" style="font-size: 0.8rem; padding: 6px 16px;">⬇️ 一键下载全部</button>
+                  <button class="download-btn" onclick="downloadWindowsScript(this)" style="font-size: 0.8rem; padding: 6px 16px; background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.5); color: #93c5fd;">⚡ Win一键替换</button>
+                </div>
               </div>
               
               <div class="hint-section" style="margin-top: 12px;">
@@ -465,6 +468,7 @@
                   <div class="btn-row">
                     <button class="copy-btn" onclick="copyToken(this, 'token-output')">📋 复制</button>
                     <button class="download-btn" onclick="downloadTokenFile(this)">⬇️ 下载</button>
+                    <button class="download-btn" onclick="downloadWindowsScript(this)" style="background: rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.5); color: #93c5fd;">⚡ Win一键替换</button>
                   </div>
                 </div>
               </div>
@@ -579,6 +583,125 @@
       }
       btn.textContent = '✅ 已下载';
       setTimeout(() => btn.textContent = '⬇️ 一键下载全部', 1500);
+    }
+    
+    // 生成 Windows 一键替换脚本
+    function generateWindowsScript() {
+      if (!window.tokenData || !window.tokenData.kiroToken) return null;
+      
+      const token = window.tokenData.kiroToken;
+      // 使用 Base64 编码 JSON，避免引号转义问题（带缩进格式）
+      const tokenJsonStr = JSON.stringify(token, null, 2);
+      const tokenBase64 = btoa(unescape(encodeURIComponent(tokenJsonStr)));
+      
+      // 生成时间戳
+      const now = new Date();
+      const timestamp = now.getFullYear().toString() +
+        (now.getMonth() + 1).toString().padStart(2, '0') +
+        now.getDate().toString().padStart(2, '0') + '_' +
+        now.getHours().toString().padStart(2, '0') +
+        now.getMinutes().toString().padStart(2, '0') +
+        now.getSeconds().toString().padStart(2, '0');
+      
+      // 如果是 BuilderId 类型，还需要处理 clientIdHash 文件
+      let clientIdScript = '';
+      if (window.tokenData.isBuilderIdType && window.tokenData.clientIdHashFile) {
+        const clientFile = window.tokenData.clientIdHashFile;
+        const clientJsonStr = JSON.stringify(clientFile.content, null, 2);
+        const clientBase64 = btoa(unescape(encodeURIComponent(clientJsonStr)));
+        
+        clientIdScript = `
+set "CLIENTID_FILE=%KIRO_DIR%\\${clientFile.filename}"
+echo [INFO] Writing clientIdHash file...
+powershell -Command "$b64='${clientBase64}'; $bytes=[Convert]::FromBase64String($b64); $json=[Text.Encoding]::UTF8.GetString($bytes); [IO.File]::WriteAllText('%CLIENTID_FILE%', $json, (New-Object Text.UTF8Encoding $false))"
+if errorlevel 1 (
+    echo [ERROR] Failed to write clientIdHash file!
+    pause
+    exit /b 1
+)
+echo [OK] clientIdHash file written!
+`;
+      }
+      
+      const script = `@echo off
+chcp 65001 >nul
+
+echo ========================================
+echo   Kiro Token Replace Tool
+echo ========================================
+echo.
+
+set "KIRO_DIR=%USERPROFILE%\\.aws\\sso\\cache"
+set "TOKEN_FILE=%KIRO_DIR%\\kiro-auth-token.json"
+set "BACKUP_FILE=%TOKEN_FILE%.backup_${timestamp}"
+
+echo [DEBUG] KIRO_DIR=%KIRO_DIR%
+echo [DEBUG] TOKEN_FILE=%TOKEN_FILE%
+echo.
+
+if not exist "%KIRO_DIR%" (
+    echo [INFO] Creating directory: %KIRO_DIR%
+    mkdir "%KIRO_DIR%"
+    if errorlevel 1 (
+        echo [ERROR] Failed to create directory!
+        pause
+        exit /b 1
+    )
+    echo [OK] Directory created!
+) else (
+    echo [INFO] Directory exists: %KIRO_DIR%
+)
+
+if exist "%TOKEN_FILE%" (
+    echo [INFO] Backing up original file...
+    copy "%TOKEN_FILE%" "%BACKUP_FILE%" >nul
+    if errorlevel 1 (
+        echo [ERROR] Backup failed!
+        pause
+        exit /b 1
+    )
+    echo [OK] Backed up to: %BACKUP_FILE%
+) else (
+    echo [INFO] Original file not exist, skip backup
+)
+
+echo [INFO] Writing new Token...
+powershell -Command "$b64='${tokenBase64}'; $bytes=[Convert]::FromBase64String($b64); $json=[Text.Encoding]::UTF8.GetString($bytes); [IO.File]::WriteAllText('%TOKEN_FILE%', $json, (New-Object Text.UTF8Encoding $false))"
+if errorlevel 1 (
+    echo [ERROR] Failed to write Token!
+    pause
+    exit /b 1
+)
+echo [OK] Token replaced!
+${clientIdScript}
+echo.
+echo ========================================
+echo   Done! Please restart Kiro
+echo ========================================
+echo.
+pause
+`;
+      
+      return script;
+    }
+    
+    // 下载 Windows 一键替换脚本
+    function downloadWindowsScript(btn) {
+      const script = generateWindowsScript();
+      if (!script) return;
+      
+      const blob = new Blob([script], { type: 'application/bat' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kiro-token-replace.bat';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      btn.textContent = '✅ 已下载';
+      setTimeout(() => btn.textContent = '⚡ Win一键替换', 1500);
     }
   </script>
 </body>
