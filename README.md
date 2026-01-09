@@ -147,6 +147,7 @@ wrangler deploy
 
 工具支持以下输入格式：
 
+- **纯 refreshToken**: `aorAAAAAGnFL...`（直接粘贴即可）
 - **JSON 格式**: `{"refreshToken": "xxx", "provider": "Google"}`
 - **中文格式**: `账号：{"email":"xxx"}登录token：{"refreshToken":"xxx"}`
 - **管道格式**: `{"email":"xxx"}|{"refreshToken":"xxx"}`
