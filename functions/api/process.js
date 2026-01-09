@@ -298,6 +298,11 @@ function normalizeUsage(data) {
 /* ------------------------ input parsing ------------------------ */
 
 function parseInput(input) {
+  // 纯 refreshToken 格式（aor 开头）
+  if (/^aor[A-Za-z0-9_+-]{50,}:[A-Za-z0-9+/=]{50,}$/.test(input)) {
+    return { refreshToken: input };
+  }
+
   // 直接 JSON
   try {
     const parsed = JSON.parse(input);
